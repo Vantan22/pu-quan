@@ -8,10 +8,11 @@ import {
   Modal,
   Button,
   message,
-  Spin,
 } from "antd";
 import { TableOutlined } from "@ant-design/icons";
 import { useTables, useUpdateTableStatus } from "@/hooks/useTable";
+import { useLoading } from '@/contexts/LoadingContext'
+import { useEffect } from 'react'
 
 const { Title } = Typography;
 
@@ -49,21 +50,35 @@ const mockTables = [
 
 function TableList() {
   const navigate = useNavigate();
+  const { showLoading, hideLoading } = useLoading()
   const { data: tables = mockTables, isLoading } = useTables();
   const updateTableStatus = useUpdateTableStatus();
 
-  const handleTableClick = (table) => {
+  useEffect(() => {
+    if (isLoading) {
+      showLoading('Đang tải danh sách bàn...')
+    } else {
+      hideLoading()
+    }
+  }, [isLoading])
+
+  const handleTableClick = async (table) => {
     if (table.status === "empty") {
       Modal.confirm({
         title: `Mở bàn ${table.name}?`,
         content: "Xác nhận có khách ngồi vào bàn này?",
-        onOk: () => {
-          updateTableStatus.mutate(
-            { tableId: table.id, status: "occupied" },
-            {
-              onSuccess: () => navigate(`/table/${table.id}`),
-            }
-          );
+        onOk: async () => {
+          try {
+            showLoading('Đang cập nhật trạng thái bàn...')
+            await updateTableStatus.mutateAsync(
+              { tableId: table.id, status: "occupied" },
+              {
+                onSuccess: () => navigate(`/table/${table.id}`),
+              }
+            );
+          } finally {
+            hideLoading()
+          }
         },
       });
     } else if (table.status === "occupied") {
@@ -72,14 +87,6 @@ function TableList() {
       message.info("Bàn đang được dọn dẹp");
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spin size="large" />
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -105,13 +112,15 @@ function TableList() {
                 hoverable
                 onClick={() => handleTableClick(table)}
                 className="text-center w-[160px]"
-                bodyStyle={{
-                  padding: "12px",
-                  height: "160px",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
+                styles={{
+                  body: {
+                    padding: "12px",
+                    height: "160px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }
                 }}
               >
                 <div className="flex flex-col items-center">

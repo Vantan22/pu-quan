@@ -3,7 +3,8 @@ import { Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import Navbar from "@/components/Navbar";
-
+import { LoadingProvider } from "@/contexts/LoadingContext";
+import LoadingScreen from "@/components/LoadingScreen";
 const { Content, Sider } = AntLayout;
 
 function Layout() {
@@ -84,7 +85,10 @@ function Layout() {
             }}
           >
             <div className="max-w-7xl mx-auto">
-              <Outlet />
+              <LoadingProvider>
+                <LoadingScreen />
+                <Outlet />
+              </LoadingProvider>
             </div>
           </Content>
         </AntLayout>
