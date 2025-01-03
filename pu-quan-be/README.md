@@ -1,1 +1,0 @@
-# Node-MongoDB-Express-Template
